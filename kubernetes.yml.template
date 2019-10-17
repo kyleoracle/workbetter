@@ -1,0 +1,43 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: myapp
+  labels:
+    commit: ${WERCKER_GIT_COMMIT}
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: myapp
+  template:
+    metadata:
+      labels:
+        app: myapp
+        commit: ${WERCKER_GIT_COMMIT}
+    spec:
+      containers:
+      - name: myapp
+        image: ${DOCKER_REPO}:${WERCKER_GIT_BRANCH}-${WERCKER_GIT_COMMIT}
+        imagePullPolicy: Always
+        ports:
+        - name: myapp
+          containerPort: ${PORT}
+          protocol: TCP
+      imagePullSecrets:
+        - name: wercker
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: myapp
+  labels:
+    app: myapp
+    commit: ${WERCKER_GIT_COMMIT}
+spec:
+  ports:
+  - port: 30000
+    targetPort: ${PORT}
+  selector:
+    app: myapp
+  type: NodePort
+---
